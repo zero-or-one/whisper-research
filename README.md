@@ -1,13 +1,14 @@
 # whisper-research
-Extending whisper funcitonalities for research purposes. 
-Code is build on top of openai whisper.
+Extending whisper functionalities for research purposes. 
+Code is built on top of Openai whisper.
 
 ## Alignment visualization
-Extract text and audio alignment from decoder.
+Extract text and audio alignment from the decoder.
 ![alt text](assets/alignment.png "Example of the alinmgnet")
 
 ## N candidates prediction
-Return N best candidates trascriptions in a list.
+Return N best candidates' transcriptions in a list.
+
 ![alt text](assets/candidates.png "Example of the candidates")
 
 ## How to use
