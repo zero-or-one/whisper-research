@@ -49,7 +49,14 @@ class DecodingTask(DecodingTask):
 
         tokens = tokens.reshape(n_audio, self.n_group, -1)
         sum_logprobs = sum_logprobs.reshape(n_audio, self.n_group)
-        
+
+        # get the final candidates for each group, and slice between the first sampled token and EOT
+        tokens, sum_logprobs = self.decoder.finalize(tokens, sum_logprobs)
+        tokens: List[List[Tensor]] = [
+            [t[self.sample_begin : (t == tokenizer.eot).nonzero()[0, 0]] for t in s]
+            for s in tokens
+        ]
+
         # MODIFICATION: return all beam_size best results
         if self.return_candidates:
             # We assume that tokens.shape[0] = 1, not barch inference
@@ -82,14 +89,7 @@ class DecodingTask(DecodingTask):
                 )
                 for text, tokens, avg_logprob in zip(texts, tokens_seq, avg_logprobs)
             ]
-
-        # get the final candidates for each group, and slice between the first sampled token and EOT
-        tokens, sum_logprobs = self.decoder.finalize(tokens, sum_logprobs)
-        tokens: List[List[Tensor]] = [
-            [t[self.sample_begin : (t == tokenizer.eot).nonzero()[0, 0]] for t in s]
-            for s in tokens
-        ]
-
+            
         # select the top-ranked sample in each group
         selected = self.sequence_ranker.rank(tokens, sum_logprobs)
         tokens: List[List[int]] = [t[i].tolist() for i, t in zip(selected, tokens)]
@@ -164,6 +164,6 @@ def decode(
     
     # MODIFICATION: return n best results
     if hasattr(options, 'return_candidates') and options.return_candidates:
-        return results
+        return result
 
     return result[0] if single else result
